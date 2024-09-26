@@ -136,9 +136,9 @@ class VoxelDecoder(nn.Module):
         out = self.deconv(out)
         return out.squeeze(1)
 
-class VoxelCVAE_Flow(nn.Module):
+class CC_CVAE_FLOW(nn.Module):
     def __init__(self, z_dim=128, voxel_dim=(32, 32, 32), c_dim=13):
-        super(VoxelCVAE_Flow, self).__init__()
+        super(CC_CVAE_FLOW, self).__init__()
         self.z_dim = z_dim
         self.voxel_dim = voxel_dim
         self.c_dim = c_dim
