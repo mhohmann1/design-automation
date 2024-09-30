@@ -18,6 +18,10 @@ conda activate design-automation
 conda env update -n design-automation --file environment.yml
 ```
 
+# Data
+
+The drag coefficients can be found at [4] and [5].
+
 # Super-Resolution
 
 Self implemented PyTorch edition of [3], please visit the repository for more details.
