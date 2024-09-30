@@ -20,12 +20,12 @@ conda env update -n design-automation --file environment.yml
 
 # SuperResolution
 
-Self implemented PyTorch implementation of [3], please visit the repository for more details.
+Self implemented PyTorch edition of [3], please visit the repository for more details.
 
-For training the SuperResolution-Network:
+For training the Super-Resolution-Network:
 
 ```
-python superresolution/train.py
+python super-resolution-pytorch/train.py
 ```
 If you use our PyTorch implementation, please refer to our repository `https://github.com/mhohmann1/super-resolution-pytorch` and of course to [3].
 
