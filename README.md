@@ -5,6 +5,7 @@
 # Content
 - [Installation](#installation)
 - [Data](#data)
+- [SuperResolution](#superresolution)
 - [Training](#training)
 - [Evaluation](#evaluation)
 - [Sources](#sources)
@@ -26,7 +27,7 @@ For training the SuperResolution-Network:
 ```
 python superresolution/train.py
 ```
-If you use our PyTorch implementation please refer to our repository `https://github.com/mhohmann1/design-automation/super-resolution-pytorch` and to [3].
+If you use our PyTorch implementation, please refer to our repository `https://github.com/mhohmann1/super-resolution-pytorch` and of course to [3].
 
 # Training
 
@@ -48,3 +49,6 @@ python eval.py
 
 `[3] https://github.com/EdwardSmith1884/Multi-View-Silhouette-and-Depth-Decomposition-for-High-Resolution-3D-Object-Representation`
 
+`[4] https://decode.mit.edu/projects/dragprediction`
+
+`[5] https://decode.mit.edu/projects/formfunction`
