@@ -10,7 +10,7 @@ import numpy as np
 from model.cvae_flow import CC_CVAE_FLOW
 from tqdm import tqdm
 
-def train(model, dataloader, optimizer, num_classes, input_type="voxel", add_cc3d=False):
+def train(model, dataloader, optimizer, c_type, num_classes, input_type, add_cc3d):
     model.train()
     len_dataset = len(dataloader.dataset)
     tot_train_loss, tot_rec_loss, tot_lat_loss, tot_cc3d_loss = 0, 0, 0, 0
@@ -18,9 +18,14 @@ def train(model, dataloader, optimizer, num_classes, input_type="voxel", add_cc3
         points = points.to(device)
         voxel = voxel.to(device)
         condition = condition.to(device)
-        condition_num = condition[:, 0].reshape(-1, 1)
-        condition_cat = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
-        condition = torch.cat((condition_num, condition_cat), 1)
+        if c_type == "categorical":
+            condition = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
+        elif c_type == "numerical":
+            condition = condition[:, 0].reshape(-1, 1)
+        else:
+            condition_num = condition[:, 0].reshape(-1, 1)
+            condition_cat = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
+            condition = torch.cat((condition_num, condition_cat), 1)
         if input_type == "pointcloud":
             x_pred, mean, log_var, log_det, z = model(points, condition)
         elif input_type == "voxel":
@@ -37,7 +42,7 @@ def train(model, dataloader, optimizer, num_classes, input_type="voxel", add_cc3
     average_loss = (tot_train_loss + tot_cc3d_loss) / len_dataset
     return average_loss, tot_rec_loss / len_dataset, tot_lat_loss / len_dataset
 
-def test(model, dataloader, num_classes, input_type="voxel", add_cc3d=False):
+def test(model, dataloader, c_type, num_classes, input_type, add_cc3d):
     model.eval()
     len_dataset = len(dataloader.dataset)
     with torch.no_grad():
@@ -46,9 +51,14 @@ def test(model, dataloader, num_classes, input_type="voxel", add_cc3d=False):
             points = points.to(device)
             voxel = voxel.to(device)
             condition = condition.to(device)
-            condition_num = condition[:, 0].reshape(-1, 1)
-            condition_cat = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
-            condition = torch.cat((condition_num, condition_cat), 1)
+            if c_type == "categorical":
+                condition = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
+            elif c_type == "numerical":
+                condition = condition[:, 0].reshape(-1, 1)
+            else:
+                condition_num = condition[:, 0].reshape(-1, 1)
+                condition_cat = torch.nn.functional.one_hot(condition[:, -1].view(-1).long(), num_classes)
+                condition = torch.cat((condition_num, condition_cat), 1)
             if input_type == "pointcloud":
                 x_pred, mean, log_var, log_det, z = model(points, condition)
             elif input_type == "voxel":
@@ -64,7 +74,7 @@ def test(model, dataloader, num_classes, input_type="voxel", add_cc3d=False):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="(C) Variational Autoencoder")
+    parser = argparse.ArgumentParser(description="Conditional Variational Autoencoder")
     parser.add_argument('-p', '--path', default="data/ShapeNet/02958343", help="Path of dataset.", type=str)
     parser.add_argument('-e', '--epochs', default=100, help="Number of epochs.", type=int)
     parser.add_argument('-b', '--batch_size', default=32, help ="Number of batch size.", type=int)
@@ -73,11 +83,12 @@ if __name__ == "__main__":
     parser.add_argument('-lr', "--learning_rate", default=1e-3, help="Size of learning rate.", type=int)
     parser.add_argument('-i', "--input_type", default="voxel", help="Input voxel or pointcloud.", type=str)
     parser.add_argument('-v', "--voxel_dim", default=(32, 32, 32), help="Dimensions of voxel.", type=tuple)
-    parser.add_argument('-c', "--cond_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
+    parser.add_argument('-ct', "--cond_cat_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
     parser.add_argument('-cn', "--cond_num_dim", default=1, help="Number of numerical conditions.", type=int)
     parser.add_argument('-cp', "--cond_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
     parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
     parser.add_argument('-cl', "--class_mode", default="car", help="Class mode car or plane.", type=str)
+    parser.add_argument('-c', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
     parser.add_argument('-cc', '--cc3d', default=True, help="Add cc3d regularization.", type=bool)
     args = parser.parse_args()
 
@@ -112,7 +123,15 @@ if __name__ == "__main__":
 
     print("CC3D [TRUE/FALSE]: ", args.cc3d)
 
-    model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_dim + args.cond_num_dim).to(device)
+    if args.cond_type == "both":
+        model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_cat_dim + args.cond_num_dim).to(device)
+    elif args.cond_type == "categorical":
+        model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_cat_dim).to(device)
+    elif args.cond_type == "numerical":
+        model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_num_dim).to(device)
+    else:
+        print("Enter 'both' (default), 'categorical' or 'numerical'!")
+        exit()
 
     print("Input type:", args.input_type)
     print("Learning rate: ", args.learning_rate)
@@ -134,9 +153,9 @@ if __name__ == "__main__":
 
     for epoch in tqdm(range(1, args.epochs + 1)):
 
-        mean_train_loss, mean_train_bce, mean_train_latent = train(model, train_loader, optimizer, args.cond_dim, args.input_type, args.cc3d)
+        mean_train_loss, mean_train_bce, mean_train_latent = train(model, train_loader, optimizer, args.cond_type, args.cond_cat_dim, args.input_type, args.cc3d)
         train_hist.append([mean_train_loss, mean_train_bce, mean_train_latent])
-        mean_test_loss, mean_test_bce, mean_test_latent = test(model, valid_loader, args.cond_dim, args.input_type, args.cc3d)
+        mean_test_loss, mean_test_bce, mean_test_latent = test(model, valid_loader, args.cond_type, args.cond_cat_dim, args.input_type, args.cc3d)
         test_hist.append([mean_test_loss, mean_test_bce, mean_test_latent])
 
         if mean_test_loss < BEST_LOSS:
@@ -166,3 +185,4 @@ if __name__ == "__main__":
         scheduler.step()
 
     print(f"Saved Files in {RND_NUM}")
+

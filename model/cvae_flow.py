@@ -3,7 +3,7 @@ import torch.nn as nn
 import NF
 
 class PointCloudEncoder(nn.Module):
-    def __init__(self, z_dim=128, c_dim=1):
+    def __init__(self, z_dim, c_dim):
         super(PointCloudEncoder, self).__init__()
 
         self.encode = nn.Sequential(
@@ -48,7 +48,7 @@ class PointCloudEncoder(nn.Module):
 
 
 class VoxelEncoder(nn.Module):
-    def __init__(self, z_dim=128, voxel_dim=(32, 32, 32), c_dim=1):
+    def __init__(self, z_dim, voxel_dim, c_dim):
         super(VoxelEncoder, self).__init__()
         self.voxel_dim = voxel_dim
         self.enconv = nn.Sequential(
@@ -103,7 +103,7 @@ class VoxelEncoder(nn.Module):
         return mean, log_var
 
 class VoxelDecoder(nn.Module):
-    def __init__(self, z_dim=128, c_dim=1):
+    def __init__(self, z_dim, c_dim):
         super(VoxelDecoder, self).__init__()
 
         self.fc = nn.Sequential(
@@ -137,7 +137,7 @@ class VoxelDecoder(nn.Module):
         return out.squeeze(1)
 
 class CC_CVAE_FLOW(nn.Module):
-    def __init__(self, z_dim=128, voxel_dim=(32, 32, 32), c_dim=13):
+    def __init__(self, z_dim=128, voxel_dim=(32, 32, 32), c_dim=20):
         super(CC_CVAE_FLOW, self).__init__()
         self.z_dim = z_dim
         self.voxel_dim = voxel_dim
