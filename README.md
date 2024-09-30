@@ -5,7 +5,7 @@
 # Content
 - [Installation](#installation)
 - [Data](#data)
-- [SuperResolution](#superresolution)
+- [Super-Resolution](#super-resolution)
 - [Training](#training)
 - [Evaluation](#evaluation)
 - [Sources](#sources)
@@ -18,7 +18,7 @@ conda activate design-automation
 conda env update -n design-automation --file environment.yml
 ```
 
-# SuperResolution
+# Super-Resolution
 
 Self implemented PyTorch edition of [3], please visit the repository for more details.
 
