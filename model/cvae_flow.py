@@ -146,8 +146,10 @@ class CC_CVAE_FLOW(nn.Module):
         self.voxel_encoder = VoxelEncoder(self.z_dim, voxel_dim, self.c_dim)
         self.decoder = VoxelDecoder(self.z_dim, self.c_dim)
 
+        # see 'https://github.com/AWehenkel/Normalizing-Flows'
+
         conditioner_type = NF.AutoregressiveConditioner
-        conditioner_args = {"in_size": 128, "hidden": [128, 128, 128], "out_size": 128}
+        conditioner_args = {"in_size": z_dim, "hidden": [z_dim] * 3, "out_size": z_dim}
 
         normalizer_type = NF.AffineNormalizer
         normalizer_args = {}

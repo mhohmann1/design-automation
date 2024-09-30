@@ -1,15 +1,16 @@
 from torch.utils.data import DataLoader, random_split
-from utils.dataloader import *
+from utils.dataloader import Data
 from utils.loss_function import loss_fun, loss_cc3d
-from model.cvae_flow import CC_CVAE_FLOW
 import argparse
 import torch
-from utils import plot_loss
+from utils.helpers import plot_loss
 from torch.optim.lr_scheduler import StepLR
 import os
 import numpy as np
+from model.cvae_flow import CC_CVAE_FLOW
+from tqdm import tqdm
 
-def train(model, dataloader, optimizer, epoch, num_classes, input_type="voxel", add_cc3d=False):
+def train(model, dataloader, optimizer, num_classes, input_type="voxel", add_cc3d=False):
     model.train()
     len_dataset = len(dataloader.dataset)
     tot_train_loss, tot_rec_loss, tot_lat_loss, tot_cc3d_loss = 0, 0, 0, 0
@@ -34,11 +35,9 @@ def train(model, dataloader, optimizer, epoch, num_classes, input_type="voxel", 
         loss.backward()
         optimizer.step()
     average_loss = (tot_train_loss + tot_cc3d_loss) / len_dataset
-    if epoch == 1 or epoch % 10 == 0:
-        print(f"Epoch: {epoch}, Train Loss: {average_loss:.6f}")
     return average_loss, tot_rec_loss / len_dataset, tot_lat_loss / len_dataset
 
-def test(model, dataloader, epoch, num_classes, input_type="voxel", add_cc3d=False):
+def test(model, dataloader, num_classes, input_type="voxel", add_cc3d=False):
     model.eval()
     len_dataset = len(dataloader.dataset)
     with torch.no_grad():
@@ -61,28 +60,29 @@ def test(model, dataloader, epoch, num_classes, input_type="voxel", add_cc3d=Fal
             if add_cc3d:
                 loss += loss_cc3d(x_pred, voxel) * points.size(0)
     average_loss = (tot_test_loss + tot_cc3d_loss) / len_dataset
-    if epoch == 1 or epoch % 10 == 0:
-        print(f"Epoch: {epoch}, Test Loss: {average_loss:.6f}")
     return average_loss, tot_rec_loss / len_dataset, tot_lat_loss / len_dataset
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Variational Autoencoder")
-    parser.add_argument('-p', '--path', default="../ShapeNet/02958343", help="Path of dataset.", type=str)
+    parser = argparse.ArgumentParser(description="(C) Variational Autoencoder")
+    parser.add_argument('-p', '--path', default="data/ShapeNet/02958343", help="Path of dataset.", type=str)
     parser.add_argument('-e', '--epochs', default=100, help="Number of epochs.", type=int)
     parser.add_argument('-b', '--batch_size', default=32, help ="Number of batch size.", type=int)
-    parser.add_argument('-z', "--latent_size", default=128, help="Latent Z dimension.", type=int)
-    parser.add_argument('-w', "--workers", default=16, help="Number of workers.", type=int)
+    parser.add_argument('-z', "--latent_size", default=128, help="Number of latent Z size.", type=int)
+    parser.add_argument('-w', "--workers", default=0, help="Number of workers.", type=int)
     parser.add_argument('-lr', "--learning_rate", default=1e-3, help="Size of learning rate.", type=int)
     parser.add_argument('-i', "--input_type", default="voxel", help="Input voxel or pointcloud.", type=str)
     parser.add_argument('-v', "--voxel_dim", default=(32, 32, 32), help="Dimensions of voxel.", type=tuple)
-    parser.add_argument('-c', "--cond_dim", default=13, help="Conditional dimensions 19 cars and 12 planes.", type=int)
-    parser.add_argument('-cn', "--cond_num_dim", default=1, help="Conditional dimensions for numericals.", type=int)
-    parser.add_argument('-cp', "--cond_path", default="./car/cars.csv", help="CSV of classes.", type=str)
-    parser.add_argument('-cnp', "--cond_num_path", default="./car/drag_coefficients.xlsx", help="Numerical conditions.", type=str)
+    parser.add_argument('-c', "--cond_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
+    parser.add_argument('-cn', "--cond_num_dim", default=1, help="Number of numerical conditions.", type=int)
+    parser.add_argument('-cp', "--cond_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
+    parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
     parser.add_argument('-cl', "--class_mode", default="car", help="Class mode car or plane.", type=str)
-    parser.add_argument('-cc', '--cc3d', default=False, help="Add cc3d regularization.", type=bool)
+    parser.add_argument('-cc', '--cc3d', default=True, help="Add cc3d regularization.", type=bool)
     args = parser.parse_args()
+
+    torch.manual_seed(42)
+    np.random.seed(42)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
@@ -94,15 +94,14 @@ if __name__ == "__main__":
     valid_size = int(0.1 * len(dataset))
     test_size = len(dataset) - train_size - valid_size
 
-    train_data, valid_data, test_data = random_split(dataset, [train_size, valid_size, test_size],
-                                                     generator=torch.Generator().manual_seed(42))
+    train_data, valid_data, test_data = random_split(dataset, [train_size, valid_size, test_size])
 
-    train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True,
+    train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers,
                               drop_last=True)
-    valid_loader = DataLoader(valid_data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True,
+    valid_loader = DataLoader(valid_data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers,
                               drop_last=True)
-    test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True,
-                             drop_last=True)
+    test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=args.workers,
+                             drop_last=False)
 
     print("Samples in Trainingset:", len(train_loader.dataset))
     print("Samples in Validationset:", len(valid_loader.dataset))
@@ -113,55 +112,57 @@ if __name__ == "__main__":
 
     print("CC3D [TRUE/FALSE]: ", args.cc3d)
 
-    vox_cvae = CC_CVAE_Flow(args.latent_size, args.voxel_dim, args.cond_dim + args.cond_num_dim).to(device)
-    # print(vox_cvae)
+    model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_dim + args.cond_num_dim).to(device)
 
     print("Input type:", args.input_type)
     print("Learning rate: ", args.learning_rate)
-    optimizer = torch.optim.Adam(vox_cvae.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    scheduler = StepLR(optimizer, step_size=args.epochs // 2, gamma=0.5)
 
-    rnd_num = np.random.randint(1_000_000)
-    print(rnd_num)
+    RND_NUM = np.random.randint(1_000_000)
+    print(RND_NUM)
 
-    save_dir = f"./{rnd_num}/"
-    os.mkdir(save_dir)
-    os.mkdir(f"{save_dir}tnse/")
+    SAVED_DIR = f"./saved_model/{RND_NUM}/"
+    try:
+        os.mkdir(SAVED_DIR)
+    except FileExistsError:
+        pass
 
-    scheduler = StepLR(optimizer, step_size=args.epochs // 4, gamma=0.1)
+    BEST_LOSS = np.inf
 
     train_hist, test_hist = [], []
 
-    for epoch in range(1, args.epochs + 1):
+    for epoch in tqdm(range(1, args.epochs + 1)):
 
-        mean_loss, mean_bce, mean_latent = train(vox_cvae, train_loader, optimizer, epoch, args.cond_dim, args.input_type, args.cc3d)
-        train_hist.append([mean_loss, mean_bce, mean_latent])
-        mean_loss, mean_bce, mean_latent = test(vox_cvae, valid_loader, epoch, args.cond_dim, args.input_type, args.cc3d)
-        test_hist.append([mean_loss, mean_bce, mean_latent])
+        mean_train_loss, mean_train_bce, mean_train_latent = train(model, train_loader, optimizer, args.cond_dim, args.input_type, args.cc3d)
+        train_hist.append([mean_train_loss, mean_train_bce, mean_train_latent])
+        mean_test_loss, mean_test_bce, mean_test_latent = test(model, valid_loader, args.cond_dim, args.input_type, args.cc3d)
+        test_hist.append([mean_test_loss, mean_test_bce, mean_test_latent])
 
-        scheduler.step()
-
-        if epoch % 50 == 0 or epoch == args.epochs:
-            PATH = f"{rnd_num}_pcvox_cvae_e{epoch}.tar"
-            LOSS = train_hist[-1:][0]
+        if mean_test_loss < BEST_LOSS:
+            F_PATH = f"{SAVED_DIR}{RND_NUM}_cc_cvae_flow.tar"
 
             torch.save({
                         "epoch": epoch,
-                        "model_state_dict": vox_cvae.state_dict(),
+                        "model_state_dict": model.state_dict(),
                         "optimizer_state_dict": optimizer.state_dict(),
-                        "loss": LOSS,
-                        }, save_dir + PATH)
+                        "loss": mean_test_loss,
+                        }, F_PATH)
 
-            train_hist_ = np.array(train_hist)
-            test_hist_ = np.array(test_hist)
+            BEST_LOSS = mean_test_loss
 
-            np.save(save_dir + f"{rnd_num}_train_hist.npy", train_hist_)
-            np.save(save_dir + f"{rnd_num}_test_hist.npy", test_hist_)
+        print(f"Epoch: {epoch}/{args.epochs}, Train Loss: {mean_train_loss:.6f}, Val Loss: {mean_test_loss:.6f}, Best Loss: {BEST_LOSS:.6f}")
 
-            plot_loss(train_hist_[:, 0], test_hist_[:, 0], "ELBO", save_img=True, show_img=False, path=save_dir+f"{rnd_num}_elbo.png")
-            plot_loss(train_hist_[:, 1], test_hist_[:, 1], "BCE", save_img=True, show_img=False, path=save_dir+f"{rnd_num}_bce.png")
-            plot_loss(train_hist_[:, 2], test_hist_[:, 2], "KLD", save_img=True, show_img=False, path=save_dir+f"{rnd_num}_kld.png")
+        train_hist_ = np.array(train_hist)
+        test_hist_ = np.array(test_hist)
 
-        if epoch == 1 or epoch % 10 == 0 or epoch == args.epochs:
-            save_latent_cvae(vox_cvae, train_loader, epoch, save_dir, args.input_type, args.cond_dim, device)
+        np.save(SAVED_DIR + f"{RND_NUM}_train_hist.npy", train_hist_)
+        np.save(SAVED_DIR + f"{RND_NUM}_test_hist.npy", test_hist_)
 
-    print(f"Saved files in {rnd_num}")
+        plot_loss(train_hist_[:, 0], test_hist_[:, 0], "ELBO", save_img=True, show_img=False, path=SAVED_DIR+f"{RND_NUM}_elbo.png")
+        plot_loss(train_hist_[:, 1], test_hist_[:, 1], "BCE", save_img=True, show_img=False, path=SAVED_DIR+f"{RND_NUM}_bce.png")
+        plot_loss(train_hist_[:, 2], test_hist_[:, 2], "KLD", save_img=True, show_img=False, path=SAVED_DIR+f"{RND_NUM}_kld.png")
+
+        scheduler.step()
+
+    print(f"Saved Files in {RND_NUM}")

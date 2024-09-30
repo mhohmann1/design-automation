@@ -17,6 +17,17 @@ conda activate design-automation
 conda env update -n design-automation --file environment.yml
 ```
 
+# SuperResolution
+
+Self implemented PyTorch implementation of [3], please visit the repository for more details.
+
+For training the SuperResolution-Network:
+
+```
+python superresolution/train.py
+```
+If you use our PyTorch implementation please refer to our repository `https://github.com/mhohmann1/design-automation/super-resolution-pytorch` and to [3].
+
 # Training
 
 ```
@@ -31,9 +42,9 @@ python eval.py
 
 # Sources
 
-`https://github.com/AWehenkel/Normalizing-Flows`
+`[1] https://github.com/AWehenkel/Normalizing-Flows`
 
-`https://github.com/seung-lab/connected-components-3d`
+`[2] https://github.com/seung-lab/connected-components-3d`
 
-`https://github.com/EdwardSmith1884/Multi-View-Silhouette-and-Depth-Decomposition-for-High-Resolution-3D-Object-Representation`
+`[3] https://github.com/EdwardSmith1884/Multi-View-Silhouette-and-Depth-Decomposition-for-High-Resolution-3D-Object-Representation`
 

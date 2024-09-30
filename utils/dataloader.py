@@ -5,7 +5,7 @@ import scipy
 import torch
 import binvox_rw
 import pandas as pd
-from utils_dataloader import *
+from utils.utils_dataloader import *
 
 
 class Data(Dataset):
@@ -90,20 +90,6 @@ class Data(Dataset):
                 continue
             self.paths.append(os.path.join(obj_dir, obj))
             self.conditions.append(condition)
-
-        remove_conditions = True
-
-        if remove_conditions:
-            c_pos = np.mean(self.conditions, axis=0) + 2 * np.std(self.conditions, axis=0)
-            c_neg = np.mean(self.conditions, axis=0) - 2 * np.std(self.conditions, axis=0)
-            indices_to_remove = []
-            for index, condi in enumerate(self.conditions):
-                if np.greater(condi, c_pos).any() or np.less(condi, c_neg).any():
-                    indices_to_remove.append(index)
-
-            for index in sorted(indices_to_remove, reverse=True):
-                del self.conditions[index]
-                del self.paths[index]
 
         if self.cond_scale == "normalized":
             self.cond_mean = np.array([0.40091659060638885, 0.48605318793918634])
