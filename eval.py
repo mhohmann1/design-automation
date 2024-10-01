@@ -50,22 +50,22 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=args.workers,
                              drop_last=False)
 
+    if args.super_res:
+        occ_model = Upscale(args.ratio).to(device)
+        optimizer = torch.optim.Adam(occ_model.parameters())
+        path = f"super_resolution_pytorch/saved_model/occupancy_model_{args.class_mode}.tar"
 
-    occ_model = Upscale(args.ratio).to(device)
-    optimizer = torch.optim.Adam(occ_model.parameters())
-    path = f"super_resolution_pytorch/saved_model/occupancy_model_{args.class_mode}.tar"
+        occ_model = load_model(path, occ_model, optimizer)
+        occ_model.eval()
+        print("Occupancy model loaded")
 
-    occ_model = load_model(path, occ_model, optimizer)
-    occ_model.eval()
-    print("Occupancy model loaded")
+        depth_model = Upscale(args.ratio).to(device)
+        optimizer = torch.optim.Adam(depth_model.parameters())
+        path = f"super_resolution_pytorch/saved_model/depth_model_{args.class_mode}.tar"
 
-    depth_model = Upscale(args.ratio).to(device)
-    optimizer = torch.optim.Adam(depth_model.parameters())
-    path = f"super_resolution_pytorch/saved_model/depth_model_{args.class_mode}.tar"
-
-    depth_model = load_model(path, depth_model, optimizer)
-    depth_model.eval()
-    print("Depth model loaded")
+        depth_model = load_model(path, depth_model, optimizer)
+        depth_model.eval()
+        print("Depth model loaded")
 
 
     if args.cond_type == "both":
