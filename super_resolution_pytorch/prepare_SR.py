@@ -8,7 +8,7 @@ from super_resolution_pytorch.utils.helpers import odm
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Super-Resolution-Network")
-    parser.add_argument('-p', '--path', default="data/ShapeNet/02958343", help="Path of dataset.", type=str)
+    parser.add_argument('-p', '--path', default="data/ShapeNetCorev1/", help="Path of dataset.", type=str)
     parser.add_argument('--high', default=256, help="High-Resolution of voxel grid.", type=int)
     parser.add_argument('--low', default=32, help="Low-Resolution of voxel grid.", type=int)
     args = parser.parse_args()
@@ -17,12 +17,8 @@ if __name__ == "__main__":
 
     down = args.high // args.low
 
-    shapenet_path = "./Data/ShapeNetCorev1/"
-
-    for folder in os.listdir(shapenet_path):
-        if folder == "03001627":
-            continue
-        class_folder = os.path.join(shapenet_path, folder)
+    for folder in os.listdir(args.path):
+        class_folder = os.path.join(args.path, folder)
         for obj in os.listdir(class_folder):
             obj_path = os.path.join(class_folder, obj) + "/model.obj"
 
