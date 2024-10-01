@@ -20,7 +20,7 @@ conda env update -n design-automation --file environment.yml
 
 # Data
 
-The drag coefficients can be found at [4] and [5].
+The ShapeNet dataset can be found at [4], the subclasses are copied from the official ShapeNet website and the drag coefficients from [5] and [6].
 
 # Super-Resolution
 
@@ -53,6 +53,8 @@ python eval.py
 
 `[3] https://github.com/EdwardSmith1884/Multi-View-Silhouette-and-Depth-Decomposition-for-High-Resolution-3D-Object-Representation`
 
-`[4] https://decode.mit.edu/projects/dragprediction`
+`[4] https://github.com/autonomousvision/shape_as_points`
 
-`[5] https://decode.mit.edu/projects/formfunction`
+`[5] https://decode.mit.edu/projects/dragprediction`
+
+`[6] https://decode.mit.edu/projects/formfunction`
