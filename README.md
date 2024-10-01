@@ -41,6 +41,8 @@ python train.py
 
 # Evaluation
 
+Before you evaluate, please be sure that you trained the Super-Resolution-Network, if not, disable the respective option in eval.py.
+
 ```
 python eval.py
 ```
