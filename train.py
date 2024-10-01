@@ -89,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
     parser.add_argument('-cm', "--class_mode", default="car", help="Class mode car or plane.", type=str)
     parser.add_argument('-ct', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
-    parser.add_argument('-cc3d', '--cc3d', default=True, help="Add cc3d regularization.", type=bool)
+    parser.add_argument('-cc3d', '--cc3d', default=True, help="Add cc3d regularization.", type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
     torch.manual_seed(42)
