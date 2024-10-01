@@ -27,7 +27,7 @@ The ShapeNet dataset can be found at [4], the subclasses are copied from the off
 Own PyTorch implementation of [3], please visit their repository for more details. Please be sure, that the data is inside the respective directory. For training the Super-Resolution-Network, first pre-process the data with:
 
 ```
-python super_resolution_pytorch/prepare_SR.py"
+python super_resolution_pytorch/prepare_SR.py
 ```
 
 Then train the depth map model with:
