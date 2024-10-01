@@ -12,7 +12,7 @@ print(f"Device: {device}")
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Super-Resolution-Network")
-    parser.add_argument('-p', '--path', default="data/ShapeNet/02958343", help="Path of dataset.", type=str)
+    parser.add_argument('-p', '--path', default="data/ShapeNetSR/02958343", help="Path of dataset.", type=str)
     parser.add_argument('-e', '--epochs', default=100, help="Number of epochs.", type=int)
     parser.add_argument('-b', '--batch_size', default=32, help ="Number of batch size.", type=int)
     parser.add_argument('-w', "--workers", default=0, help="Number of workers.", type=int)
