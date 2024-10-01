@@ -14,7 +14,7 @@ def train(model, dataloader, optimizer, c_type, num_classes, input_type, add_cc3
     model.train()
     len_dataset = len(dataloader.dataset)
     tot_train_loss, tot_rec_loss, tot_lat_loss, tot_cc3d_loss = 0, 0, 0, 0
-    for points, condition, voxel in dataloader:
+    for points, condition, voxel, _ in dataloader:
         points = points.to(device)
         voxel = voxel.to(device)
         condition = condition.to(device)
@@ -47,7 +47,7 @@ def test(model, dataloader, c_type, num_classes, input_type, add_cc3d):
     len_dataset = len(dataloader.dataset)
     with torch.no_grad():
         tot_test_loss, tot_rec_loss, tot_lat_loss, tot_cc3d_loss = 0, 0, 0, 0
-        for points, condition, voxel in dataloader:
+        for points, condition, voxel, _ in dataloader:
             points = points.to(device)
             voxel = voxel.to(device)
             condition = condition.to(device)
@@ -83,13 +83,13 @@ if __name__ == "__main__":
     parser.add_argument('-lr', "--learning_rate", default=1e-3, help="Size of learning rate.", type=int)
     parser.add_argument('-i', "--input_type", default="voxel", help="Input voxel or pointcloud.", type=str)
     parser.add_argument('-v', "--voxel_dim", default=(32, 32, 32), help="Dimensions of voxel.", type=tuple)
-    parser.add_argument('-ct', "--cond_cat_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
+    parser.add_argument('-cc', "--cond_cat_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
     parser.add_argument('-cn', "--cond_num_dim", default=1, help="Number of numerical conditions.", type=int)
-    parser.add_argument('-cp', "--cond_cat_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
+    parser.add_argument('-ccp', "--cond_cat_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
     parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
-    parser.add_argument('-cl', "--class_mode", default="car", help="Class mode car or plane.", type=str)
-    parser.add_argument('-c', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
-    parser.add_argument('-cc', '--cc3d', default=True, help="Add cc3d regularization.", type=bool)
+    parser.add_argument('-cm', "--class_mode", default="car", help="Class mode car or plane.", type=str)
+    parser.add_argument('-ct', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
+    parser.add_argument('-cc3d', '--cc3d', default=True, help="Add cc3d regularization.", type=bool)
     args = parser.parse_args()
 
     torch.manual_seed(42)
@@ -98,8 +98,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
-    data_path = args.path
-    dataset = Data(data_path, args.cond_cat_path, args.cond_num_path, args.class_mode)
+    dataset = Data(args.path, args.cond_cat_path, args.cond_num_path, args.class_mode)
 
     train_size = int(0.8 * len(dataset))
     valid_size = int(0.1 * len(dataset))
