@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', "--voxel_dim", default=(32, 32, 32), help="Dimensions of voxel.", type=tuple)
     parser.add_argument('-ct', "--cond_cat_dim", default=19, help="Number of categories/classes (single categories -> cars=19 and planes=12).", type=int)
     parser.add_argument('-cn', "--cond_num_dim", default=1, help="Number of numerical conditions.", type=int)
-    parser.add_argument('-cp', "--cond_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
+    parser.add_argument('-cp', "--cond_cat_path", default="data/car/cars.csv", help="File-Path of categorical conditions.", type=str)
     parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
     parser.add_argument('-cl', "--class_mode", default="car", help="Class mode car or plane.", type=str)
     parser.add_argument('-c', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     print(f"Device: {device}")
 
     data_path = args.path
-    dataset = Data(data_path, args.cond_path, args.cond_num_path, args.class_mode)
+    dataset = Data(data_path, args.cond_cat_path, args.cond_num_path, args.class_mode)
 
     train_size = int(0.8 * len(dataset))
     valid_size = int(0.1 * len(dataset))
