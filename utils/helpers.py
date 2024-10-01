@@ -21,7 +21,7 @@ def plot_loss(train_loss, test_loss, label, save_img=False, show_img=False, path
     plt.close()
 
 def load_model(path, model, optimizer, eval=True):
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path, weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']

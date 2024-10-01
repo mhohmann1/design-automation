@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('-cnp', "--cond_num_path", default="data/car/drag_coefficients.xlsx", help="File-Path of numerical conditions.", type=str)
     parser.add_argument('-ct', "--cond_type", default="both", help="Condition type(s), enter: categorical, numerical or both (default).", type=str)
     parser.add_argument('-cm', "--class_mode", default="car", help="Class mode car or plane.", type=str)
-    parser.add_argument('-sr', '--super_res', default=True, help="Enable super-resolution.", type=bool)
+    parser.add_argument('-sr', '--super_res', default=False, action="store_true", help="Enable super-resolution.")
     args = parser.parse_args()
 
     torch.manual_seed(42)
@@ -62,7 +62,12 @@ if __name__ == "__main__":
         depth_model = load_model(path, depth_model, optimizer)
         depth_model.eval()
         print("Depth model loaded")
-
+    elif args.super_res == False:
+        occ_model, depth_model = None, None
+        print("Super-Resolution will not be evaluated.")
+    else:
+        print("Not an option.")
+        exit()
 
     if args.cond_type == "both":
         model = CC_CVAE_FLOW(args.latent_size, args.voxel_dim, args.cond_cat_dim + args.cond_num_dim).to(device)
@@ -77,7 +82,7 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    model = load_model(f"saved_model/{args.model_id}/{args.model_id}__cc_cvae_flow.tar", model, optimizer)
+    model = load_model(f"saved_model/{args.model_id}/{args.model_id}_cc_cvae_flow.tar", model, optimizer)
 
     eval_prediction(model, test_loader, device, input_type=args.input_type, condition_type=args.cond_type, cat_nums=args.cond_cat_dim, super_resolution=args.super_res, occupancy_model=occ_model,
                     depth_model=depth_model)
