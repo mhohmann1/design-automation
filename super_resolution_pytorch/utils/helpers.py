@@ -1,5 +1,36 @@
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
+
+def prepare_batch(high, low, h=256, l=32, valid=False, side=-1, occupancy=False):
+    ratio = h//l
+    alter = (side==-1)
+    if alter:
+        side = np.random.randint(0, 6)
+    side = np.ones((l,l,1)) * side
+    low = low.reshape((l,l,1))
+    high = high.reshape((h,h,1))
+    if not occupancy:
+        a,b,c = np.where(low>0)
+        up = np.zeros((h,h,1))
+        for x,y,z in zip(a,b,c):
+            up[ratio*x:ratio*(x+1), ratio*y:ratio*(y+1), 0] = (low[x,y,0]) *ratio
+        change = np.where(high==h)
+        if valid:
+            up_change = np.where(up==h)
+        else:
+            up_change = change
+        up = up + 1
+        up[up_change] = 0
+        high = high + 1
+        high[change] = 0
+    else:
+        on = np.where(high!=h)
+        off = np.where(high==h)
+        high[on] = 1.0
+        high[off] = 0.0
+        up = np.zeros((1,1,1))
+    return high, low, up, side
 
 def odm(data, high, low):
     dim = data.shape[0]
@@ -149,3 +180,16 @@ def make_super_resolution(obj, odms, h=256, l=32):
     occupancy_obj = apply_occupancy(upsampled_obj, odms, h)
     depth_obj = apply_depth(occupancy_obj, odms, h)
     return depth_obj
+
+def plot_loss(train_loss, test_loss, label, save_img=False, show_img=False, path=None):
+    plt.figure(figsize=(10, 5))
+    plt.plot(train_loss, label=f"Training {label}")
+    plt.plot(test_loss, label=f"Testing {label}")
+    plt.xlabel("Epoch")
+    plt.ylabel(f"{label}")
+    plt.legend(loc="upper right")
+    if save_img:
+        plt.savefig(path)
+    if show_img:
+        plt.show()
+    plt.close()

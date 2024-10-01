@@ -24,13 +24,24 @@ The ShapeNet dataset can be found at [4], the subclasses are copied from the off
 
 # Super-Resolution
 
-Own PyTorch implementation of [3], please visit their repository for more details.
-
-For training the Super-Resolution-Network:
+Own PyTorch implementation of [3], please visit their repository for more details. Please be sure, that the data is inside the respective directory. For training the Super-Resolution-Network, first pre-process the data with:
 
 ```
-python super_resolution_pytorch/train.py
+python super_resolution_pytorch/train_SR.py --model_type "depth"
 ```
+
+Then train the depth map model with:
+
+```
+python super_resolution_pytorch/train_SR.py --model_type "depth"
+```
+
+Followed with the occupancy map model:
+
+```
+python super_resolution_pytorch/train_SR.py --model_type "occupancy"
+```
+
 If you use our PyTorch implementation, please refer to our repository `https://github.com/mhohmann1/super-resolution-pytorch` and of course to [3].
 
 # Training
