@@ -119,5 +119,5 @@ class Data(Dataset):
             voxel = rotate_model(voxel, "voxel", angle)
             pc = rotate_model(pc, "pointcloud", angle)
         return torch.tensor(pc, dtype=torch.float32), torch.tensor(condition, dtype=torch.float32), torch.tensor(voxel,
-                                                                                                                 dtype=torch.float32)
+                                                                                                                 dtype=torch.float32), path
 
