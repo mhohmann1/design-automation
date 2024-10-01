@@ -29,7 +29,7 @@ Own PyTorch implementation of [3], please visit their repository for more detail
 For training the Super-Resolution-Network:
 
 ```
-python super-resolution-pytorch/train.py
+python super_resolution_pytorch/train.py
 ```
 If you use our PyTorch implementation, please refer to our repository `https://github.com/mhohmann1/super-resolution-pytorch` and of course to [3].
 
@@ -41,7 +41,7 @@ python train.py
 
 # Evaluation
 
-Before you evaluate, please be sure that you trained the Super-Resolution-Network, if not, disable the respective option in eval.py.
+Before you evaluate, please be sure that you trained the Super-Resolution-Network, if not add `--super_res False`.
 
 ```
 python eval.py
